@@ -63,6 +63,7 @@ public class PostServiceImpl implements PostService {
 
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
+        post.setImageName(dto.getImageName());
 
         Post savePost = postRepository.save(post);
         return modelMapper.map(savePost, PostDTO.class);
@@ -72,7 +73,6 @@ public class PostServiceImpl implements PostService {
     public void deletePost(Integer postId) {
         Post post=postRepository.findById(postId)
                 .orElseThrow(()->new ResourceNotFoundException("Post","id",postId));
-        //todo : delete image
         postRepository.delete(post);
     }
 

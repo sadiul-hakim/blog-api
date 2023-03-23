@@ -1,27 +1,39 @@
 package com.blog.controllers;
 
+import com.blog.exceptions.ResourceNotProvidedException;
 import com.blog.payloads.ApiResponse;
 import com.blog.payloads.AppConstants;
 import com.blog.payloads.PagePostResponse;
 import com.blog.payloads.PostDTO;
+import com.blog.services.FileService;
 import com.blog.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/post")
 public class PostController {
     private final PostService postService;
+    private final FileService fileService;
+    @Value("${project.image}")
+    private String path;
 
     @Autowired
-    public PostController(PostService postService) {
+    public PostController(PostService postService, FileService fileService) {
         this.postService = postService;
+        this.fileService = fileService;
     }
 
     @PostMapping("/category/{categoryId}/user/{userId}")
@@ -29,15 +41,16 @@ public class PostController {
             @Valid @RequestBody PostDTO dto,
             @PathVariable("categoryId") Integer categoryId,
             @PathVariable("userId") Integer userId,
-            MultipartFile file
-            ){
+            @RequestParam(value = "image",required = false) MultipartFile file
+            ) throws IOException, ResourceNotProvidedException {
         //set image file name
         if(file != null){
-            dto.setImageName(file.getOriginalFilename());
+                String fileName = fileService.uploadFile(path, file);
+                dto.setImageName(fileName);
         }else{
             dto.setImageName("default.png");
         }
-        //todo: save image
+
         PostDTO postDTO = postService.createPost(dto, userId, categoryId);
         return ResponseEntity.status(HttpStatus.CREATED).body(postDTO);
     }
@@ -91,6 +104,7 @@ public class PostController {
 
     @DeleteMapping("/{postId}")
     public ResponseEntity<?> deletePost(@PathVariable("postId") Integer postId){
+        //todo : delete image
         postService.deletePost(postId);
         return ResponseEntity.ok(new ApiResponse("Post deleted successfully.",true));
     }
@@ -108,5 +122,29 @@ public class PostController {
     public ResponseEntity<List<PostDTO>> searchPost(@RequestParam("keywordInTitle") String keyword){
         List<PostDTO> DTOList = postService.searchPost(keyword);
         return ResponseEntity.ok(DTOList);
+    }
+
+    @PostMapping("/{postId}/upload")
+    public ResponseEntity<PostDTO> uploadPostFile(
+            @RequestParam("file") MultipartFile file,
+            @PathVariable("postId") Integer postId)
+            throws IOException, ResourceNotProvidedException {
+        PostDTO postDTO = postService.getPost(postId);
+
+        String uploadFile = fileService.uploadFile(path, file);
+        postDTO.setImageName(uploadFile);
+        PostDTO updatedPost = postService.updatePost(postDTO, postId);
+        return ResponseEntity.ok(updatedPost);
+    }
+
+    @GetMapping(value = "/download/{imageName}",produces = MediaType.IMAGE_JPEG_VALUE)
+    public void downloadImage(
+            @PathVariable("imageName") String imageName,
+            HttpServletResponse response)
+            throws IOException{
+
+        InputStream inputStream = fileService.getResource(path, imageName);
+        response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+        StreamUtils.copy(inputStream,response.getOutputStream());
     }
 }
