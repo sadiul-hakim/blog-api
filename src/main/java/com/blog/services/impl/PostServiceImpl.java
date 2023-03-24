@@ -91,11 +91,11 @@ public class PostServiceImpl implements PostService {
 
         Sort sort;
         if(direction.equals("asc")){
-            sort=Sort.by(direction).ascending();
+            sort=Sort.by(sortBy).ascending();
         }else if(direction.equals("dsc")){
-            sort=Sort.by(direction).descending();
+            sort=Sort.by(sortBy).descending();
         }else{
-            sort=Sort.by(direction).ascending();
+            sort=Sort.by(sortBy).ascending();
         }
 
         Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);

@@ -29,4 +29,5 @@ public class UserDTO {
     @NotEmpty(message = "about can not be empty")
     @Size(min=15,max=250,message = "about must be between 15-250 characters")
     private String about;
+
 }

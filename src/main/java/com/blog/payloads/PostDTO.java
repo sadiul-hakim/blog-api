@@ -8,6 +8,8 @@ import lombok.Setter;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @NoArgsConstructor
 @Getter
@@ -25,5 +27,5 @@ public class PostDTO {
     private Date creationDate;
     private CategoryDTO category;
     private UserDTO user;
-
+    private Set<CommentDTO> comments=new HashSet<>();
 }
