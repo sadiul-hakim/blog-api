@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> disabledExceptionHandler(DisabledException ex){
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse(ex.getMessage(),false));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> accessDeniedExceptionHandler(AccessDeniedException ex){
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
                 .body(new ApiResponse(ex.getMessage(),false));
     }
 
