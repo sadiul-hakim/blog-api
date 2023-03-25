@@ -2,8 +2,11 @@ package com.blog.exceptions;
 
 
 import com.blog.payloads.ApiResponse;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -34,8 +37,36 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse(ex.getMessage(),false));
     }
 
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<?> tokenExpiredException(ExpiredJwtException ex){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse(ex.getMessage(),false));
+    }
+
+    @ExceptionHandler(MalformedJwtException.class)
+    public ResponseEntity<?> tokenMalformed(MalformedJwtException ex){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse(ex.getMessage(),false));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> illegalArgumentException(IllegalArgumentException ex){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse(ex.getMessage(),false));
+    }
+
     @ExceptionHandler(ResourceNotProvidedException.class)
     public ResponseEntity<?> resourceNotProvidedExceptionHandler(ResourceNotProvidedException ex){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse(ex.getMessage(),false));
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<?> disabledExceptionHandler(DisabledException ex){
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ApiResponse(ex.getMessage(),false));

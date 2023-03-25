@@ -7,6 +7,7 @@ import com.blog.repositories.UserRepo;
 import com.blog.services.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,10 +17,13 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
     private final UserRepo userRepository;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
+
     @Autowired
-    public UserServiceImpl(UserRepo userRepository, ModelMapper modelMapper) {
+    public UserServiceImpl(UserRepo userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -31,10 +35,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO updateUser(UserDTO dto, Integer userId) {
         User user=this.userRepository.findById(userId)
-                .orElseThrow(()->new ResourceNotFoundException("User","id",userId));
+                .orElseThrow(()->new ResourceNotFoundException("User","id",userId.toString()));
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setAbout(dto.getAbout());
         User savedUser = this.userRepository.save(user);
         return userToDTO(savedUser);
@@ -43,7 +47,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO getUserById(Integer userId) {
         User user=this.userRepository.findById(userId)
-                .orElseThrow(()->new ResourceNotFoundException("User","id",userId));
+                .orElseThrow(()->new ResourceNotFoundException("User","id",userId.toString()));
         return userToDTO(user);
     }
 
@@ -60,7 +64,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Integer userId) {
         User user=this.userRepository.findById(userId)
-                .orElseThrow(()->new ResourceNotFoundException("User","id",userId));
+                .orElseThrow(()->new ResourceNotFoundException("User","id",userId.toString()));
         this.userRepository.delete(user);
     }
 
