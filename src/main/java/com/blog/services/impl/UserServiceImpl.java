@@ -1,8 +1,11 @@
 package com.blog.services.impl;
 
+import com.blog.entities.Role;
 import com.blog.entities.User;
 import com.blog.exceptions.ResourceNotFoundException;
+import com.blog.payloads.Roles;
 import com.blog.payloads.UserDTO;
+import com.blog.repositories.RoleRepo;
 import com.blog.repositories.UserRepo;
 import com.blog.services.UserService;
 import org.modelmapper.ModelMapper;
@@ -18,17 +21,24 @@ public class UserServiceImpl implements UserService {
     private final UserRepo userRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RoleRepo roleRepository;
 
     @Autowired
-    public UserServiceImpl(UserRepo userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepo userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, RoleRepo roleRepository) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
+        this.roleRepository = roleRepository;
     }
 
     @Override
     public UserDTO createUser(UserDTO dto) {
+        Role normalRole = roleRepository.findById(Roles.ROLE_NORMAL_ID)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "id", String.valueOf(Roles.ROLE_NORMAL_ID)));
+
         User user=dtoToUser(dto);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.getRoles().add(normalRole);
         User savedUser = this.userRepository.save(user);
         return userToDTO(savedUser);
     }
@@ -38,7 +48,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(()->new ResourceNotFoundException("User","id",userId.toString()));
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setPassword(dto.getPassword());
         user.setAbout(dto.getAbout());
         User savedUser = this.userRepository.save(user);
         return userToDTO(savedUser);
