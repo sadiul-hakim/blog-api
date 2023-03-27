@@ -19,17 +19,14 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
     private final JwtTokenHelper tokenHelper;
-
     @Autowired
     public JwtAuthenticationFilter(UserDetailsService userDetailsService, JwtTokenHelper tokenHelper) {
         this.userDetailsService = userDetailsService;
         this.tokenHelper = tokenHelper;
     }
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestToken = request.getHeader("Authorization");
-
         //get username and token
         String username=null;
         String token=null;
@@ -39,7 +36,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }else{
             System.out.println("Token is Either null or does not start with Bearer.");
         }
-
         //validate token
         if(username!=null && SecurityContextHolder.getContext().getAuthentication()==null){
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -56,7 +52,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }else{
             System.out.println("username is null or context is not null.");
         }
-
         filterChain.doFilter(request,response);
     }
 }
